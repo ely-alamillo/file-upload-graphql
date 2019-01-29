@@ -1,12 +1,65 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import { ApolloProvider, Mutation } from 'react-apollo';
+import { HttpLink, InMemoryCache, ApolloClient } from 'apollo-client-preset';
+import { ApolloLink } from 'apollo-link';
+import { createUploadLink } from 'apollo-upload-client';
 
-ReactDOM.render(<App />, document.getElementById('root'));
+import gql from 'graphql-tag';
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+const uploadLink = createUploadLink({ uri: 'http://localhost:4000/graphql' });
+const httpLink = new HttpLink({ uri: 'http://localhost:4000/graphql' });
+const cache = new InMemoryCache();
+
+const UPLOAD_FILE = gql`
+  mutation($file: Upload!) {
+    addProfilePicture(picture: $file)
+  }
+`;
+
+const handleChange = async (event, mutation) => {
+  const {
+    target: {
+      validity,
+      files: [file]
+    }
+  } = event;
+
+  if (validity.valid) {
+    console.log({ file, event: event.target });
+    // Call graphql API
+    const data = await mutation({
+      mutation: UPLOAD_FILE,
+      variables: { file },
+      fetchPolicy: 'no-cache'
+    });
+    // Use uploadSingleFile response
+    console.log({ data });
+  }
+};
+
+const UploadFile = ({ onChange, ...rest }) => {
+  return (
+    <Mutation mutation={UPLOAD_FILE} fetchPolicy="no-cache">
+      {(mutation, { loading }) => (
+        <input
+          type="file"
+          required
+          onChange={event => handleChange(event, mutation)}
+        />
+      )}
+    </Mutation>
+  );
+};
+
+// apollo client setup
+const client = new ApolloClient({
+  cache,
+  link: ApolloLink.from([uploadLink, httpLink])
+});
+ReactDOM.render(
+  <ApolloProvider client={client}>
+    <UploadFile />
+  </ApolloProvider>,
+  document.getElementById('root')
+);

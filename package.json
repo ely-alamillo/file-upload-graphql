@@ -3,7 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "apollo-client-preset": "^1.0.8",
+    "apollo-link": "^1.2.6",
+    "apollo-upload-client": "^10.0.0",
+    "graphql": "^14.1.1",
+    "graphql-tag": "^2.10.1",
+    "prop-types": "^15.6.2",
     "react": "^16.7.0",
+    "react-apollo": "^2.4.1",
     "react-dom": "^16.7.0",
     "react-scripts": "2.1.3"
   },
